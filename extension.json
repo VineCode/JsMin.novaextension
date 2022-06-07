@@ -3,38 +3,59 @@
     "name": "JsMin",
     "organization": "Vine Code Limited",
     "description": "Automatically minify JS files on save.",
-    "version": "0.7.1",
+    "version": "0.8.0",
     "categories": ["formatters"],
     "repository": "https://github.com/vinecode/JsMin.novaextension",
-    "bugs": "https://github.com/vinecode/JsMin.novaextension/issues",        
+    "bugs": "https://github.com/vinecode/JsMin.novaextension/issues",
     "main": "main.js",
     "entitlements": {
         "process": true
-    },    
+    },
     
     "commands": {
         "editor": [
             {
                 "title": "Minify JS",
                 "command": "JsMin.minifyFile",
-                "when": "editorSyntax == 'javascript'"             
+                "when": "editorSyntax == 'javascript'"
             },
             {
                 "title": "Beautify JS",
                 "command": "JsMin.beautifyFile",
-                "when": "editorSyntax == 'javascript'"             
-            }            
+                "when": "editorSyntax == 'javascript'"
+            }
         ]
-    },    
+    },
     
-    "config": [        
+    "configWorkspace":
+    [
         {
             "key": "VineCode.JsMin.minifyOnSave",
             "title": "Minify on Save",
             "description": "Automatically minify js files on save.",
             "type": "enum",
             "values": ["Yes", "No"],
-            "default": "Yes"               
+            "default": "No"
+        },
+        {
+            "key": "VineCode.JsMin.findInPath",
+            "title": "Change Output Path\nSource",
+            "type": "path",
+            "allowFiles": false,
+            "allowFolders": true,
+            "relative": false,
+            "description": "To change the output path, first specify the root of all un-minified js files, so subdirectories below this point can be preserved in the destination. Files outside this path will be minified in place.",
+            "placeholder": "/path/to/js/src/"
+        },
+        {
+            "key": "VineCode.JsMin.replaceInPath",
+            "title": "Change Output Path\nDestination",
+            "type": "path",
+            "allowFiles": false,
+            "allowFolders": true,
+            "relative": false,
+            "description": "You must also specify which directory will be the root for all minified files.",
+            "placeholder": "/path/to/js/min/"
         },
         {
             "key": "VineCode.JsMin.mangle",
@@ -42,7 +63,7 @@
             "description": "Mangle Names.",
             "type": "enum",
             "values": ["Yes", "No"],
-            "default": "Yes" 
+            "default": "No"
         },
         {
             "key": "VineCode.JsMin.sourceMap",
@@ -50,14 +71,14 @@
             "description": "Enable source map file generation",
             "type": "enum",
             "values": ["Yes", "No"],
-            "default": "Yes" 
+            "default": "No"
         },
         {
             "key": "VineCode.JsMin.execPath",
             "title": "Executable Path",
             "type": "path",
             "description": "Manually set the path for the sass executable.",
-            "placeholder": "/usr/local/bin/uglifyjs" 
-        }     
-    ]    
+            "placeholder": "/usr/local/bin/uglifyjs"
+        }
+    ]
 }
