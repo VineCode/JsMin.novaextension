@@ -92,7 +92,9 @@ For remote websites, keep a local project, compile locally, and use Nova Publish
 
 ## Upgrading
 
-### From 1.0 to 1.1
+### From 1.0 or 1.1 to 1.1.1
+
+Version 1.1.1 fixes a missing read permission used to recognise saved project preferences. It resolves the “does not declare a read entitlement for the file system” warning. No settings changes are required, and compilation options and defaults remain unchanged.
 
 Version 1.1 simplifies the Editor menu labels and makes the Extensions commands available only when a JavaScript editor is active. Compilation behaviour, saved settings and defaults are unchanged. No settings changes are needed.
 

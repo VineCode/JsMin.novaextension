@@ -1,5 +1,10 @@
 # ChangeLog
 
+## Version 1.1.1
+
+- Fix the missing filesystem read permission that prevented JsMin from recognising saved project preferences during upgrade handling.
+- Remove the associated permission warning from the Extension Console. Compilation options and defaults are unchanged.
+
 ## Version 1.1
 
 - Simplify Editor → JsMin command labels to Compile Now and Beautify Now, removing the redundant JsMin prefix.
