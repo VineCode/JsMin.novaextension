@@ -30,7 +30,7 @@ Choose **Extensions → JsMin → Beautify Now** to format the current local Jav
 
 This command updates the source file in place and preserves comments. It does not compress, wrap or mangle the code, and works even when Run on Save is No. Keep a backup or use version control before formatting.
 
-Both manual commands are also available in the editor menu.
+Both manual commands are also available under **Editor → JsMin**. The menu commands are enabled when a JavaScript editor is active.
 
 ## Project settings
 
@@ -90,7 +90,13 @@ JsMin supports local files only. Attempting to process a remote JavaScript file 
 
 For remote websites, keep a local project, compile locally, and use Nova Publishing to upload the generated JavaScript and optional source maps.
 
-## Upgrading to 1.0
+## Upgrading
+
+### From 1.0 to 1.1
+
+Version 1.1 simplifies the Editor menu labels and makes the Extensions commands available only when a JavaScript editor is active. Compilation behaviour, saved settings and defaults are unchanged. No settings changes are needed.
+
+### From versions before 1.0
 
 Settings are now per project. There are no global settings to view or edit in this version.
 

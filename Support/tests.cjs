@@ -50,6 +50,10 @@ const Service = require('../Scripts/NovaJsMinService');
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'jsmin-tests-'));
 function editor(file) { return {document: {path: file, uri: pathToFileURL(file).href, isDirty: false}}; }
 async function main() {
+  for(const menu of ['editor', 'extensions']) {
+    assert.deepEqual(manifest.commands[menu].map(item => item.title), ['Compile Now', 'Beautify Now']);
+    for(const item of manifest.commands[menu]) assert.equal(item.when, "editorSyntax == 'javascript'");
+  }
   reset({minifyOnSave:'No',mangle:'No',sourceMap:'No',execPath:'/custom path/uglifyjs'});
   let service = new Service();
   assert.equal(service.setting('minifyOnSave'), 'No');

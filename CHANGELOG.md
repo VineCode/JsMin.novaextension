@@ -1,5 +1,11 @@
 # ChangeLog
 
+## Version 1.1
+
+- Simplify Editor → JsMin command labels to Compile Now and Beautify Now, removing the redundant JsMin prefix.
+- Disable the Extensions → JsMin compilation and beautification commands when no JavaScript editor is active, matching the Editor menu.
+- Compilation behaviour, settings and defaults are unchanged from 1.0.
+
 ## Version 1.0
 
 - Configure each project independently, with simple radio-button choices. Existing global preferences continue to apply until project settings are customised; the first change saves the selected project values and defaults without copying old globals. Previous compilation defaults are retained.

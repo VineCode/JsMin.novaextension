@@ -3,7 +3,7 @@
     "name": "JsMin",
     "organization": "Vine Code Limited",
     "description": "Automatically minify JS files on save.",
-    "version": "1.0",
+    "version": "1.1",
     "categories": [
         "formatters"
     ],
@@ -16,12 +16,12 @@
     "commands": {
         "editor": [
             {
-                "title": "JsMin: Compile Now",
+                "title": "Compile Now",
                 "command": "JsMin.minifyFile",
                 "when": "editorSyntax == 'javascript'"
             },
             {
-                "title": "JsMin: Beautify Now",
+                "title": "Beautify Now",
                 "command": "JsMin.beautifyFile",
                 "when": "editorSyntax == 'javascript'"
             }
@@ -29,11 +29,13 @@
         "extensions": [
             {
                 "title": "Compile Now",
-                "command": "JsMin.minifyFile"
+                "command": "JsMin.minifyFile",
+                "when": "editorSyntax == 'javascript'"
             },
             {
                 "title": "Beautify Now",
-                "command": "JsMin.beautifyFile"
+                "command": "JsMin.beautifyFile",
+                "when": "editorSyntax == 'javascript'"
             }
         ]
     },
