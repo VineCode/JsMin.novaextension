@@ -2,9 +2,10 @@
 
 ## Version 1.0
 
-- Configure each project independently, with support for existing global preferences and the previous compilation defaults.
+- Configure each project independently. Previous global preferences supply initial values for upgrades; the first project-setting change saves a complete project configuration, independent of global preferences. Previous compilation defaults are retained.
 - Organise settings into General, Output, Advanced, and UglifyJS Installation.
-- Add Compact/Beautified output, configurable output suffix (default `.min.js`), comment preservation, indentation, compression and function-name controls.
+- Add Compact/Beautified output, configurable output suffix (default `.min.js`), comment preservation, compression and function-name controls.
+- Add a numeric Indent Size setting for beautified output, accepting 0–16 spaces with a default of 4.
 - Add optional wrapping and property mangling with pattern and reserved-name controls. These remain disabled by default.
 - Add JsMin: Compile Now and JsMin: Beautify Now to the Extensions and editor menus. Both target the current local file and work with Run on Save disabled. Beautify Now formats the source in place and preserves comments without compression or mangling.
 - Detect UglifyJS installations and show executable/version choices with an installation status check.

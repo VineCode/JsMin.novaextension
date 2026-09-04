@@ -127,14 +127,11 @@
                 {
                     "key": "VineCode.JsMin.indent",
                     "title": "Indent Size",
-                    "description": "Spaces per indentation level for beautified output, including Beautify Now.",
-                    "type": "enum",
-                    "values": [
-                        "2",
-                        "4",
-                        "8"
-                    ],
-                    "default": "4"
+                    "description": "Spaces per indentation level for beautified output, including Beautify Now. Enter a whole number from 0 to 16. Default: 4.",
+                    "type": "number",
+                    "default": 4,
+                    "min": 0,
+                    "max": 16
                 },
                 {
                     "key": "VineCode.JsMin.commentFilter",

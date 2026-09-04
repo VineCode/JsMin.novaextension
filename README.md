@@ -36,7 +36,7 @@ Both manual commands are also available in the editor menu.
 
 Open **Project → Project Settings → Languages & Extensions → JsMin**.
 
-Each project can have its own settings. The settings show your previous preference where available, otherwise the default described below. Change a selection to customise that project; opening settings does not save project preferences.
+Each project can have its own settings. Before you change a JsMin setting, previous global preferences supply the initial values where available; otherwise the defaults below apply. Your first change saves the complete set of settings for this project. From then on, only project settings are used. Opening a project or viewing settings does not save preferences.
 
 ### General
 
@@ -58,7 +58,7 @@ An empty suffix uses `.min.js`. Choose a distinct suffix ending in `.js`, not `.
 - **Compression:** Optimise the code by simplifying expressions and removing unnecessary code. Default: Yes. Compression can be used with either Compact or Beautified output.
 - **Mangle Names:** Shorten eligible variable and parameter names. Default: Yes. Top-level names are not mangled.
 - **Preserve Function Names:** Protect function names during compression and mangling. Useful for code relying on `Function.name` or clearer stack traces. Default: No. Choosing No allows optimisation; it does not force names to change.
-- **Indent Size:** 2, 4 or 8 spaces for beautified output, including Beautify Now. Default: 4.
+- **Indent Size:** A whole number from 0 to 16 spaces for beautified output, including Beautify Now. Default: 4.
 - **Comments to Keep:** All or License (`@license`, `@preserve`, or comments starting with `!`). Only applies when Keep Comments is Yes. Default: All. Compression may still discard comments attached to removed code.
 - **Wrap Module:** An optional module name, such as `MyLibrary`. Wraps the code with `exports` and `global` available inside it. This does not bundle dependencies. Default: empty.
 - **Mangle Properties:** Rename object properties. Default: No. **Use with caution:** this can break public APIs, JSON keys and properties shared across separately compiled files. Do not assume property names will stay consistent between files.
@@ -92,7 +92,7 @@ For remote websites, keep a local project, compile locally, and use Nova Publish
 
 ## Upgrading to 1.0
 
-Settings are now per project. Your saved global preferences supply the initial selections, while saved project selections take precedence.
+Settings are now per project. Saved global preferences are used only for initial compatibility with older versions. The first time you change any JsMin project setting, all effective settings are saved for that project. Afterwards, global preferences are ignored, including when the project is reopened. There are no global settings to view or edit in this version.
 
 The previous compilation defaults are retained: run on save, compression, name mangling and source maps enabled; compact output, comments removed, and `.min.js` output. Function-name preservation, property mangling and wrapping are off by default.
 

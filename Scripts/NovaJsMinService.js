@@ -1,5 +1,12 @@
 // JsMin Extension for Nova. Copyright © Vine Code Limited.
 const PREFIX = 'VineCode.JsMin.';
+const DEFAULTS = {
+  minifyOnSave: 'Yes', sourceMap: 'Yes', mangle: 'Yes', execPath: 'uglifyjs',
+  outputFormat: 'Compact', outputSuffix: '.min.js', keepComments: 'No',
+  compress: 'Yes', keepFunctionNames: 'No', indent: 4, commentFilter: 'All',
+  wrap: '', mangleProps: 'No', propertyPattern: '', reservedProperties: '', keepQuotedProps: 'Yes'
+};
+const PROJECT_ONLY = PREFIX + 'projectSettingsInitialized';
 class JsMinService {
   constructor() {
     this.issues = new IssueCollection('JsMin');
@@ -8,10 +15,43 @@ class JsMinService {
     this.processes = new Map();
     // Do not write configuration during activation: Nova can deadlock while
     // opening a project and processing extension-originated settings writes.
+    this.configListeners = Object.keys(DEFAULTS).map(key =>
+      nova.workspace.config.onDidChange(PREFIX + key, value => this.projectSettingChanged(key, value)));
+  }
+  projectSettingChanged(key, value) {
+    if(this.disposed || this.savingSettings || nova.workspace.config.get(PROJECT_ONLY) === true) return;
+    if(!this.projectSnapshot) {
+      this.projectSnapshot = {};
+      for(const name of Object.keys(DEFAULTS)) this.projectSnapshot[name] = this.setting(name);
+    }
+    // The changed value is already persisted by Nova. Capture further edits
+    // made before the deferred snapshot too. Never write from its callback.
+    this.projectSnapshot[key] = value == null || value === 'inherit' ? this.setting(key) : value;
+    clearTimeout(this.settingsTimer);
+    this.settingsTimer = setTimeout(() => this.saveProjectSnapshot(), 0);
+  }
+  saveProjectSnapshot() {
+    if(this.disposed || !this.projectSnapshot) return;
+    this.savingSettings = true;
+    try {
+      for(const key of Object.keys(DEFAULTS)) {
+        if(nova.workspace.config.get(PREFIX + key) !== this.projectSnapshot[key]) {
+          nova.workspace.config.set(PREFIX + key, this.projectSnapshot[key]);
+        }
+      }
+      // Commit the marker last so interrupted initialisation is retryable.
+      nova.workspace.config.set(PROJECT_ONLY, true);
+      this.projectSnapshot = null;
+    } catch(error) {
+      console.error('Could not initialise JsMin project settings: ' + error);
+      this.notify('jsmin-settings', 'JsMin project settings could not be saved', 'Please change a setting again to retry. ' + error);
+    } finally { this.savingSettings = false; }
   }
   setting(key) {
     const value = nova.workspace.config.get(PREFIX + key);
     if(value != null && value !== 'inherit') return value;
+    if(this.projectSnapshot && Object.prototype.hasOwnProperty.call(this.projectSnapshot, key)) return this.projectSnapshot[key];
+    if(nova.workspace.config.get(PROJECT_ONLY) === true) return DEFAULTS[key];
     if(['minifyOnSave', 'mangle', 'sourceMap', 'execPath'].includes(key)) {
       const legacy = nova.config.get(PREFIX + key);
       if(legacy != null) return legacy;
@@ -20,7 +60,7 @@ class JsMinService {
     if(key === 'outputFormat') return this.setting('beautifyOutput') === 'Yes' ? 'Beautified' : 'Compact';
     if(key === 'keepComments') return ['All', 'License'].includes(this.setting('comments')) ? 'Yes' : 'No';
     if(key === 'commentFilter') return this.setting('comments') === 'License' ? 'License' : 'All';
-    return value;
+    return DEFAULTS[key];
   }
   resolveSettingChoices(key, values) {
     const saved = nova.workspace.config.get(PREFIX + key);
@@ -138,7 +178,10 @@ class JsMinService {
   minifyJsFileOnCommand(context) { return this.compile(this.commandEditor(context), true, false); }
   beautifyJsFileOnCommand(context) { return this.compile(this.commandEditor(context), true, true); }
   buildArgs(beautify) {
-    const indent = ['2', '4', '8'].includes(this.setting('indent')) ? this.setting('indent') : '4';
+    const configuredIndent = this.setting('indent');
+    // Accept existing string preferences as well as the numeric input.
+    const numericIndent = configuredIndent === '' || configuredIndent == null ? 4 : Number(configuredIndent);
+    const indent = Number.isInteger(numericIndent) && numericIndent >= 0 && numericIndent <= 16 ? numericIndent : 4;
     // Beautify Now is formatting only: never wrap, compress or rename source code.
     if(beautify) return ['--beautify', 'indent_level=' + indent, '--comments', 'all'];
     const args = [];
@@ -221,6 +264,8 @@ class JsMinService {
   }
   dispose() {
     this.disposed = true;
+    clearTimeout(this.settingsTimer);
+    for(const listener of this.configListeners) listener.dispose();
     for(const stop of this.processes.values()) stop();
     this.issues.dispose();
   }

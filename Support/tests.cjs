@@ -37,7 +37,7 @@ function reset(old = {}, current = {}) {
   notifications = []; launches = [];
   global.nova = {
     config: {get: key => legacy.get(key)},
-    workspace: {config: {get: key => project.get(key), set: () => { throw new Error('Extension must not write configuration'); }}},
+    workspace: {config: {get: key => project.get(key), onDidChange: () => ({dispose() {}}), set: () => { throw new Error('Extension must not write configuration before a user change'); }}},
     notifications: {add: request => { notifications.push(request); return new Promise(() => {}); }, cancel() {}}
   };
 }
@@ -180,6 +180,12 @@ async function main() {
   assert.match(configuredOutput,/_quoted/);
   assert.doesNotMatch(configuredOutput,/_private/);
   assert.deepEqual(service.buildArgs(true),['--beautify','indent_level=2','--comments','all']);
+  for(const [input, expected] of [[3,3],[0,0],[16,16],['8',8],[-1,4],[2.5,4],['bad',4],[17,4],['',4]]) {
+    project.set(prefix+'indent',input);
+    assert.equal(service.buildArgs(true)[1],'indent_level='+expected);
+    assert.ok(service.buildArgs(false).includes('indent_level='+expected));
+  }
+  project.set(prefix+'indent',4);
   await service.beautifyJsFileOnCommand();
   assert.doesNotMatch(fs.readFileSync(source,'utf8'),/ExampleLibrary/);
   project.set(prefix+'propertyPattern','[');
@@ -235,6 +241,30 @@ async function main() {
   await service.minifyJsFileOnCommand(nova.workspace);
   await service.beautifyJsFileOnCommand(nova.workspace);
   assert.equal(launches.length,count,'No editor must safely do nothing');
+  reset({minifyOnSave:'No', mangle:'No', execPath:'/legacy/uglifyjs'});
+  service = new Service();
+  assert.equal(project.size,0);
+  const writes = [];
+  nova.workspace.config.set = (key,value) => { writes.push(key); project.set(key,value); };
+  project.set(prefix+'outputSuffix','.compiled.js');
+  service.projectSettingChanged('outputSuffix','.compiled.js');
+  assert.equal(writes.length,0,'No synchronous write in config notification');
+  await new Promise(resolve=>setTimeout(resolve,10));
+  assert.equal(project.get(prefix+'projectSettingsInitialized'),true);
+  assert.equal(project.get(prefix+'mangle'),'No');
+  assert.equal(project.get(prefix+'minifyOnSave'),'No');
+  assert.equal(project.get(prefix+'execPath'),'/legacy/uglifyjs');
+  assert.equal(project.get(prefix+'outputSuffix'),'.compiled.js');
+  nova.config.get = () => { throw new Error('No global reads after initialisation'); };
+  const reopened = new Service();
+  assert.equal(reopened.setting('mangle'),'No');
+  project.delete(prefix+'mangle');
+  assert.equal(reopened.setting('mangle'),'Yes','Missing project setting uses product default, not globals');
+  const savedCount = writes.length;
+  project.set(prefix+'minifyOnSave','Yes');
+  reopened.projectSettingChanged('minifyOnSave','Yes');
+  assert.equal(writes.length,savedCount,'Later user changes do not reinitialise');
+  service.dispose(); reopened.dispose();
   console.log('All JsMin tests passed.');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => fs.rmSync(temp,{recursive:true,force:true}));
