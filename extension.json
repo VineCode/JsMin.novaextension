@@ -3,61 +3,254 @@
     "name": "JsMin",
     "organization": "Vine Code Limited",
     "description": "Automatically minify JS files on save.",
-    "version": "0.7.1",
-    "categories": ["formatters"],
+    "version": "1.0",
+    "categories": [
+        "formatters"
+    ],
     "repository": "https://github.com/vinecode/JsMin.novaextension",
-    "bugs": "https://github.com/vinecode/JsMin.novaextension/issues",        
+    "bugs": "https://github.com/vinecode/JsMin.novaextension/issues",
     "main": "main.js",
     "entitlements": {
         "process": true
-    },    
-    
+    },
     "commands": {
         "editor": [
             {
-                "title": "Minify JS",
+                "title": "JsMin: Compile Now",
                 "command": "JsMin.minifyFile",
-                "when": "editorSyntax == 'javascript'"             
+                "when": "editorSyntax == 'javascript'"
             },
             {
-                "title": "Beautify JS",
+                "title": "JsMin: Beautify Now",
                 "command": "JsMin.beautifyFile",
-                "when": "editorSyntax == 'javascript'"             
-            }            
+                "when": "editorSyntax == 'javascript'"
+            }
+        ],
+        "extensions": [
+            {
+                "title": "JsMin: Compile Now",
+                "command": "JsMin.minifyFile"
+            },
+            {
+                "title": "JsMin: Beautify Now",
+                "command": "JsMin.beautifyFile"
+            }
         ]
-    },    
-    
-    "config": [        
+    },
+    "configWorkspace": [
         {
-            "key": "VineCode.JsMin.minifyOnSave",
-            "title": "Minify on Save",
-            "description": "Automatically minify js files on save.",
-            "type": "enum",
-            "values": ["Yes", "No"],
-            "default": "Yes"               
+            "title": "General",
+            "type": "section",
+            "children": [
+                {
+                    "key": "VineCode.JsMin.minifyOnSave",
+                    "title": "Run on Save",
+                    "description": "Process the saved local JavaScript file using these output settings. Manual commands still work when No. Default: Yes. Automatic uses the previous preference, or the stated default, without saving it to this project.",
+                    "type": "enum",
+                    "values": [
+                        [
+                            "inherit",
+                            "Automatic / inherited"
+                        ],
+                        "Yes",
+                        "No"
+                    ],
+                    "default": "inherit"
+                },
+                {
+                    "key": "VineCode.JsMin.sourceMap",
+                    "title": "Generate Source Map",
+                    "description": "Generate a .map file alongside the compiled output. Default: Yes. Automatic uses the previous preference, or the stated default, without saving it to this project.",
+                    "type": "enum",
+                    "values": [
+                        [
+                            "inherit",
+                            "Automatic / inherited"
+                        ],
+                        "Yes",
+                        "No"
+                    ],
+                    "default": "inherit"
+                }
+            ]
         },
         {
-            "key": "VineCode.JsMin.mangle",
-            "title": "Mangle",
-            "description": "Mangle Names.",
-            "type": "enum",
-            "values": ["Yes", "No"],
-            "default": "Yes" 
+            "title": "Output",
+            "type": "section",
+            "children": [
+                {
+                    "key": "VineCode.JsMin.outputFormat",
+                    "title": "Output Format",
+                    "type": "enum",
+                    "values": [
+                        [
+                            "inherit",
+                            "Automatic / inherited"
+                        ],
+                        "Compact",
+                        "Beautified"
+                    ],
+                    "description": "Compact removes formatting; Beautified adds line breaks and indentation. Compression is on by default; mangling is separate under Advanced. Default: Compact. Automatic uses the previous preference, or the stated default, without saving it to this project.",
+                    "default": "inherit"
+                },
+                {
+                    "key": "VineCode.JsMin.outputSuffix",
+                    "title": "Output Suffix",
+                    "type": "string",
+                    "default": ".min.js",
+                    "placeholder": ".min.js",
+                    "description": "Replace the source .js extension with this suffix, e.g. main.js → main.compiled.js using .compiled.js. Default: .min.js. Must end in .js and cannot be .js alone. Beautify Now still edits the source."
+                },
+                {
+                    "key": "VineCode.JsMin.keepComments",
+                    "title": "Keep Comments",
+                    "type": "enum",
+                    "values": [
+                        [
+                            "inherit",
+                            "Automatic / inherited"
+                        ],
+                        "Yes",
+                        "No"
+                    ],
+                    "description": "Preserve comments in compiled output. Compression may discard comments attached to removed code. Default: No. Automatic uses the previous preference, or the stated default, without saving it to this project.",
+                    "default": "inherit"
+                }
+            ]
         },
         {
-            "key": "VineCode.JsMin.sourceMap",
-            "title": "Generate Source Map",
-            "description": "Enable source map file generation",
-            "type": "enum",
-            "values": ["Yes", "No"],
-            "default": "Yes" 
+            "title": "Advanced",
+            "type": "section",
+            "children": [
+                {
+                    "key": "VineCode.JsMin.compress",
+                    "title": "Compression",
+                    "description": "Enable UglifyJS optimisations. Turn off to retain code structure; mangling is controlled separately.",
+                    "type": "enum",
+                    "values": [
+                        "Yes",
+                        "No"
+                    ],
+                    "default": "Yes"
+                },
+                {
+                    "key": "VineCode.JsMin.mangle",
+                    "title": "Mangle Names",
+                    "description": "Shorten eligible variable and parameter names. Separate from compression and output formatting. Default: Yes; saved preferences are preserved. Automatic uses the previous preference, or the stated default, without saving it to this project.",
+                    "type": "enum",
+                    "values": [
+                        [
+                            "inherit",
+                            "Automatic / inherited"
+                        ],
+                        "Yes",
+                        "No"
+                    ],
+                    "default": "inherit"
+                },
+                {
+                    "key": "VineCode.JsMin.keepFunctionNames",
+                    "title": "Preserve Function Names",
+                    "description": "Protect function names during compression and mangling. Enable for code relying on Function.name or clearer stack traces. Default: No, matching earlier releases; No does not force names to change.",
+                    "type": "enum",
+                    "values": [
+                        "Yes",
+                        "No"
+                    ],
+                    "default": "No"
+                },
+                {
+                    "key": "VineCode.JsMin.indent",
+                    "title": "Indent Size",
+                    "description": "Spaces per indentation level for beautified output, including Beautify Now.",
+                    "type": "enum",
+                    "values": [
+                        "2",
+                        "4",
+                        "8"
+                    ],
+                    "default": "4"
+                },
+                {
+                    "key": "VineCode.JsMin.commentFilter",
+                    "title": "Comments to Keep",
+                    "type": "enum",
+                    "values": [
+                        [
+                            "inherit",
+                            "Automatic / inherited"
+                        ],
+                        "All",
+                        "License"
+                    ],
+                    "description": "Only used when Keep Comments is Yes. License keeps @license, @preserve and comments starting with !. Default: All. Automatic uses the previous preference, or the stated default, without saving it to this project.",
+                    "default": "inherit"
+                },
+                {
+                    "key": "VineCode.JsMin.wrap",
+                    "title": "Wrap Module",
+                    "description": "Optional module name for --wrap. Exposes exports and global inside a wrapper. Leave empty for unchanged behaviour; this is not a bundler.",
+                    "type": "string",
+                    "default": ""
+                },
+                {
+                    "key": "VineCode.JsMin.mangleProps",
+                    "title": "Mangle Properties",
+                    "description": "Warning: can break public APIs, JSON keys and properties shared across files. Only enable for self-contained code; no shared name cache is used.",
+                    "type": "enum",
+                    "values": [
+                        "Yes",
+                        "No"
+                    ],
+                    "default": "No"
+                },
+                {
+                    "key": "VineCode.JsMin.propertyPattern",
+                    "title": "Property Name Pattern",
+                    "description": "Optional JavaScript regular expression body, e.g. ^_ to target private-style names. Empty targets all eligible properties. Used only when property mangling is enabled.",
+                    "type": "string",
+                    "default": ""
+                },
+                {
+                    "key": "VineCode.JsMin.reservedProperties",
+                    "title": "Reserved Properties",
+                    "description": "Comma-separated property names to leave unchanged, e.g. publicMethod, apiVersion.",
+                    "type": "string",
+                    "default": ""
+                },
+                {
+                    "key": "VineCode.JsMin.keepQuotedProps",
+                    "title": "Keep Quoted Properties",
+                    "description": "Exclude quoted property names from property mangling. Only applies when Mangle Properties is Yes.",
+                    "type": "enum",
+                    "values": [
+                        "Yes",
+                        "No"
+                    ],
+                    "default": "Yes"
+                }
+            ]
         },
         {
-            "key": "VineCode.JsMin.execPath",
-            "title": "Executable Path",
-            "type": "path",
-            "description": "Manually set the path for the sass executable.",
-            "placeholder": "/usr/local/bin/uglifyjs" 
-        }     
-    ]    
+            "title": "UglifyJS Installation",
+            "type": "section",
+            "children": [
+                {
+                    "key": "VineCode.JsMin.execPath",
+                    "title": "UglifyJS Executable",
+                    "type": "enum",
+                    "resolve": "JsMin.resolveExecutables",
+                    "allowsCustom": true,
+                    "description": "Select a detected installation or enter a custom executable path. Paths containing spaces are supported.",
+                    "default": "inherit"
+                },
+                {
+                    "title": "Check UglifyJS Installation",
+                    "type": "command",
+                    "command": "JsMin.checkInstallation",
+                    "description": "Check the selected executable and display its version and installation status."
+                }
+            ]
+        }
+    ]
 }
