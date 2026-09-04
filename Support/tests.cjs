@@ -6,6 +6,9 @@ const path = require('node:path');
 const {spawn, spawnSync} = require('node:child_process');
 const {pathToFileURL} = require('node:url');
 const prefix = 'VineCode.JsMin.';
+const manifest = require('../extension.json');
+const preferences = manifest.configWorkspace.flatMap(section => section.children);
+const manifestDefaults = new Map(preferences.filter(item => item.key).map(item => [item.key, item.default]));
 let project, legacy, notifications, launches;
 global.Issue = class {};
 global.TextEditor = {isTextEditor: value => !!(value && value.document)};
@@ -37,7 +40,9 @@ function reset(old = {}, current = {}) {
   notifications = []; launches = [];
   global.nova = {
     config: {get: key => legacy.get(key)},
-    workspace: {config: {get: key => project.get(key), onDidChange: () => ({dispose() {}}), set: () => { throw new Error('Extension must not write configuration before a user change'); }}},
+    path: {join: path.join},
+    fs: {stat: () => project.size ? {} : null, open: () => ({readlines: () => [JSON.stringify(Object.fromEntries(project))], close() {}})},
+    workspace: {path: '/mock-project', config: {get: key => project.has(key) ? project.get(key) : manifestDefaults.get(key), onDidChange: () => ({dispose() {}}), set: () => { throw new Error('Extension must not write configuration before a user change'); }}},
     notifications: {add: request => { notifications.push(request); return new Promise(() => {}); }, cancel() {}}
   };
 }
@@ -49,7 +54,7 @@ async function main() {
   let service = new Service();
   assert.equal(service.setting('minifyOnSave'), 'No');
   assert.equal(service.setting('execPath'), '/custom path/uglifyjs');
-  project.set(prefix+'mangle','Yes'); new Service();
+  project.set(prefix+'mangle','Yes'); service = new Service();
   assert.equal(service.setting('mangle'),'Yes', 'Project choice must override legacy');
   reset(); service = new Service();
   for(const key of ['minifyOnSave','sourceMap']) assert.equal(service.setting(key),'Yes');
@@ -201,7 +206,7 @@ async function main() {
   assert.ok(service.buildArgs(false).includes('--mangle'));
   project.set(prefix+'outputFormat','Compact');
   project.set(prefix+'keepComments','No');
-  new Service();
+  service = new Service();
   assert.equal(service.setting('outputFormat'),'Compact');
   assert.ok(!service.buildArgs(false).includes('--comments'));
   reset({mangle:'No', minifyOnSave:'No'}, {mangle:'inherit', minifyOnSave:'inherit', outputFormat:'inherit'});
@@ -210,12 +215,13 @@ async function main() {
   assert.equal(service.setting('minifyOnSave'),'No');
   assert.equal(service.setting('outputFormat'),'Compact');
   assert.equal(project.size,3,'Activation must not populate project settings');
-  assert.deepEqual(service.resolveSettingChoices('mangle',['Yes','No']),[['Yes','Yes'],['inherit','No']]);
-  project.set(prefix+'mangle','Yes');
-  assert.deepEqual(service.resolveSettingChoices('mangle',['Yes','No']),[['Yes','Yes'],['No','No']]);
-  project.set(prefix+'mangle','No');
-  assert.deepEqual(service.resolveSettingChoices('mangle',['Yes','No']),[['Yes','Yes'],['No','No']]);
-  assert.deepEqual(service.resolveSettingChoices('outputFormat',['Compact','Beautified']),[['inherit','Compact'],['Beautified','Beautified']]);
+  for(const key of ['minifyOnSave','sourceMap','mangle','outputFormat','keepComments','commentFilter']) {
+    const item = preferences.find(item => item.key === prefix+key);
+    assert.equal(item.radio,true);
+    assert.equal(item.resolve,undefined);
+    assert.ok(item.values.includes(item.default));
+    assert.ok(!item.values.includes('None'));
+  }
   const currentEditor = editor('/tmp/current.js');
   const menuEditor = editor('/tmp/editor-menu.js');
   nova.workspace.activeTextEditor = currentEditor;
@@ -244,6 +250,9 @@ async function main() {
   reset({minifyOnSave:'No', mangle:'No', execPath:'/legacy/uglifyjs'});
   service = new Service();
   assert.equal(project.size,0);
+  assert.equal(service.setting('mangle'),'No','Legacy setting applies despite the radio default');
+  assert.equal(service.projectChoice('mangle'),'Yes','Radio shows the new project default');
+  assert.equal(service.setting('minifyOnSave'),'No');
   const writes = [];
   nova.workspace.config.set = (key,value) => { writes.push(key); project.set(key,value); };
   project.set(prefix+'outputSuffix','.compiled.js');
@@ -251,13 +260,16 @@ async function main() {
   assert.equal(writes.length,0,'No synchronous write in config notification');
   await new Promise(resolve=>setTimeout(resolve,10));
   assert.equal(project.get(prefix+'projectSettingsInitialized'),true);
-  assert.equal(project.get(prefix+'mangle'),'No');
-  assert.equal(project.get(prefix+'minifyOnSave'),'No');
-  assert.equal(project.get(prefix+'execPath'),'/legacy/uglifyjs');
+  assert.equal(project.get(prefix+'mangle'),'Yes');
+  assert.equal(project.get(prefix+'minifyOnSave'),'Yes');
+  assert.equal(project.get(prefix+'execPath'),'uglifyjs');
   assert.equal(project.get(prefix+'outputSuffix'),'.compiled.js');
+  for(const item of preferences.filter(item => item.key)) {
+    assert.ok(project.has(item.key),'First change must persist every displayed setting, even unchanged defaults');
+  }
   nova.config.get = () => { throw new Error('No global reads after initialisation'); };
   const reopened = new Service();
-  assert.equal(reopened.setting('mangle'),'No');
+  assert.equal(reopened.setting('mangle'),'Yes');
   project.delete(prefix+'mangle');
   assert.equal(reopened.setting('mangle'),'Yes','Missing project setting uses product default, not globals');
   const savedCount = writes.length;
@@ -265,6 +277,23 @@ async function main() {
   reopened.projectSettingChanged('minifyOnSave','Yes');
   assert.equal(writes.length,savedCount,'Later user changes do not reinitialise');
   service.dispose(); reopened.dispose();
+  // A selected radio and existing project values survive the first snapshot;
+  // globals do not leak into other defaults, and no later global reads occur.
+  reset({mangle:'No', sourceMap:'No'}, {outputSuffix:'.custom.js'});
+  service = new Service();
+  nova.workspace.config.set = (key,value) => project.set(key,value);
+  project.set(prefix+'keepComments','Yes');
+  service.projectSettingChanged('keepComments','Yes');
+  project.set(prefix+'commentFilter','License');
+  service.projectSettingChanged('commentFilter','License');
+  assert.equal(service.setting('mangle'),'Yes','Pending snapshot already uses project defaults');
+  await new Promise(resolve=>setTimeout(resolve,10));
+  nova.config.get = () => { throw new Error('Globals must be ignored'); };
+  assert.equal(service.setting('keepComments'),'Yes');
+  assert.equal(service.setting('commentFilter'),'License');
+  assert.equal(service.setting('sourceMap'),'Yes');
+  assert.equal(service.setting('outputSuffix'),'.custom.js');
+  service.dispose();
   console.log('All JsMin tests passed.');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => fs.rmSync(temp,{recursive:true,force:true}));

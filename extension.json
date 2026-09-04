@@ -28,11 +28,11 @@
         ],
         "extensions": [
             {
-                "title": "JsMin: Compile Now",
+                "title": "Compile Now",
                 "command": "JsMin.minifyFile"
             },
             {
-                "title": "JsMin: Beautify Now",
+                "title": "Beautify Now",
                 "command": "JsMin.beautifyFile"
             }
         ]
@@ -47,16 +47,20 @@
                     "title": "Run on Save",
                     "description": "Process the saved local JavaScript file using these output settings. Manual commands still work when No. Default: Yes.",
                     "type": "enum",
-                    "default": "inherit",
-                    "resolve": "JsMin.resolve.minifyOnSave"
+                    "required": true,
+                    "default": "Yes",
+                    "radio": true,
+                    "values": ["Yes","No"]
                 },
                 {
                     "key": "VineCode.JsMin.sourceMap",
                     "title": "Generate Source Map",
                     "description": "Generate a .map file alongside the compiled output. Default: Yes.",
                     "type": "enum",
-                    "default": "inherit",
-                    "resolve": "JsMin.resolve.sourceMap"
+                    "required": true,
+                    "default": "Yes",
+                    "radio": true,
+                    "values": ["Yes","No"]
                 }
             ]
         },
@@ -68,9 +72,11 @@
                     "key": "VineCode.JsMin.outputFormat",
                     "title": "Output Format",
                     "type": "enum",
+                    "required": true,
                     "description": "Compact removes formatting; Beautified adds line breaks and indentation. Compression is on by default; mangling is separate under Advanced. Default: Compact.",
-                    "default": "inherit",
-                    "resolve": "JsMin.resolve.outputFormat"
+                    "default": "Compact",
+                    "radio": true,
+                    "values": ["Compact","Beautified"]
                 },
                 {
                     "key": "VineCode.JsMin.outputSuffix",
@@ -84,9 +90,11 @@
                     "key": "VineCode.JsMin.keepComments",
                     "title": "Keep Comments",
                     "type": "enum",
+                    "required": true,
                     "description": "Preserve comments in compiled output. Compression may discard comments attached to removed code. Default: No.",
-                    "default": "inherit",
-                    "resolve": "JsMin.resolve.keepComments"
+                    "default": "No",
+                    "radio": true,
+                    "values": ["Yes","No"]
                 }
             ]
         },
@@ -110,8 +118,10 @@
                     "title": "Mangle Names",
                     "description": "Shorten eligible variable and parameter names. Separate from compression and output formatting. Default: Yes; saved preferences are preserved.",
                     "type": "enum",
-                    "default": "inherit",
-                    "resolve": "JsMin.resolve.mangle"
+                    "required": true,
+                    "default": "Yes",
+                    "radio": true,
+                    "values": ["Yes","No"]
                 },
                 {
                     "key": "VineCode.JsMin.keepFunctionNames",
@@ -137,9 +147,11 @@
                     "key": "VineCode.JsMin.commentFilter",
                     "title": "Comments to Keep",
                     "type": "enum",
+                    "required": true,
                     "description": "Only used when Keep Comments is Yes. License keeps @license, @preserve and comments starting with !. Default: All.",
-                    "default": "inherit",
-                    "resolve": "JsMin.resolve.commentFilter"
+                    "default": "All",
+                    "radio": true,
+                    "values": ["All","License"]
                 },
                 {
                     "key": "VineCode.JsMin.wrap",
@@ -194,6 +206,7 @@
                     "key": "VineCode.JsMin.execPath",
                     "title": "UglifyJS Executable",
                     "type": "enum",
+                    "required": true,
                     "resolve": "JsMin.resolveExecutables",
                     "allowsCustom": true,
                     "description": "Select a detected installation or enter a custom executable path. Paths containing spaces are supported.",

@@ -20,13 +20,13 @@ Only the saved file is processed—not every JavaScript file in the project. Fil
 
 ## Manual compilation
 
-Choose **Extensions → JsMin: Compile Now** to process the current local JavaScript file using your project settings. Output is written beside the source using the configured suffix.
+Choose **Extensions → JsMin → Compile Now** to process the current local JavaScript file using your project settings. Output is written beside the source using the configured suffix.
 
 This works even when **Run on Save** is No. Unsaved changes are saved before processing. Save a new, untitled file locally before using the command.
 
 ## Beautify the current file
 
-Choose **Extensions → JsMin: Beautify Now** to format the current local JavaScript file with readable indentation and line breaks.
+Choose **Extensions → JsMin → Beautify Now** to format the current local JavaScript file with readable indentation and line breaks.
 
 This command updates the source file in place and preserves comments. It does not compress, wrap or mangle the code, and works even when Run on Save is No. Keep a backup or use version control before formatting.
 
@@ -36,7 +36,7 @@ Both manual commands are also available in the editor menu.
 
 Open **Project → Project Settings → Languages & Extensions → JsMin**.
 
-Each project can have its own settings. Before you change a JsMin setting, previous global preferences supply the initial values where available; otherwise the defaults below apply. Your first change saves the complete set of settings for this project. From then on, only project settings are used. Opening a project or viewing settings does not save preferences.
+Each project can have its own settings. The controls show saved project choices or the defaults below. Your first change saves the complete set of displayed project choices. Opening a project or viewing settings does not save preferences.
 
 ### General
 
@@ -92,7 +92,15 @@ For remote websites, keep a local project, compile locally, and use Nova Publish
 
 ## Upgrading to 1.0
 
-Settings are now per project. Saved global preferences are used only for initial compatibility with older versions. The first time you change any JsMin project setting, all effective settings are saved for that project. Afterwards, global preferences are ignored, including when the project is reopened. There are no global settings to view or edit in this version.
+Settings are now per project. There are no global settings to view or edit in this version.
+
+### Please note!
+
+After upgrading, projects without saved JsMin settings continue using your previous global preferences, so compilation behaves as before. However, the project radio buttons show this version's defaults, not those old global values.
+
+Changing **any JsMin project setting** saves the complete set of project choices: the values you select, any already saved project choices, and our defaults for everything else. Old global preferences are not copied across. From then on, only project settings are used, including after reopening the project. Simply opening settings does not trigger this switch.
+
+Review all the options before making your first change, particularly Run on Save, Mangle Names and Generate Source Map. If you previously used a custom UglifyJS path, select it explicitly when switching to project settings; otherwise automatic detection is used.
 
 The previous compilation defaults are retained: run on save, compression, name mangling and source maps enabled; compact output, comments removed, and `.min.js` output. Function-name preservation, property mangling and wrapping are off by default.
 

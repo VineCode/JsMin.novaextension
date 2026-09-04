@@ -13,6 +13,7 @@ class JsMinService {
     this.saving = new Set();
     this.jobs = new Map();
     this.processes = new Map();
+    this.savedProjectKeys = this.readSavedProjectKeys();
     // Do not write configuration during activation: Nova can deadlock while
     // opening a project and processing extension-originated settings writes.
     this.configListeners = Object.keys(DEFAULTS).map(key =>
@@ -20,13 +21,14 @@ class JsMinService {
   }
   projectSettingChanged(key, value) {
     if(this.disposed || this.savingSettings || nova.workspace.config.get(PROJECT_ONLY) === true) return;
+    this.savedProjectKeys.add(PREFIX + key);
     if(!this.projectSnapshot) {
       this.projectSnapshot = {};
-      for(const name of Object.keys(DEFAULTS)) this.projectSnapshot[name] = this.setting(name);
+      for(const name of Object.keys(DEFAULTS)) this.projectSnapshot[name] = this.projectChoice(name);
     }
     // The changed value is already persisted by Nova. Capture further edits
     // made before the deferred snapshot too. Never write from its callback.
-    this.projectSnapshot[key] = value == null || value === 'inherit' ? this.setting(key) : value;
+    this.projectSnapshot[key] = value == null || value === 'inherit' ? DEFAULTS[key] : value;
     clearTimeout(this.settingsTimer);
     this.settingsTimer = setTimeout(() => this.saveProjectSnapshot(), 0);
   }
@@ -35,9 +37,7 @@ class JsMinService {
     this.savingSettings = true;
     try {
       for(const key of Object.keys(DEFAULTS)) {
-        if(nova.workspace.config.get(PREFIX + key) !== this.projectSnapshot[key]) {
-          nova.workspace.config.set(PREFIX + key, this.projectSnapshot[key]);
-        }
+        nova.workspace.config.set(PREFIX + key, this.projectSnapshot[key]);
       }
       // Commit the marker last so interrupted initialisation is retryable.
       nova.workspace.config.set(PROJECT_ONLY, true);
@@ -48,10 +48,10 @@ class JsMinService {
     } finally { this.savingSettings = false; }
   }
   setting(key) {
-    const value = nova.workspace.config.get(PREFIX + key);
-    if(value != null && value !== 'inherit') return value;
     if(this.projectSnapshot && Object.prototype.hasOwnProperty.call(this.projectSnapshot, key)) return this.projectSnapshot[key];
-    if(nova.workspace.config.get(PROJECT_ONLY) === true) return DEFAULTS[key];
+    if(nova.workspace.config.get(PROJECT_ONLY) === true) return this.projectChoice(key);
+    const value = nova.workspace.config.get(PREFIX + key);
+    if(value != null && value !== 'inherit' && (this.savedProjectKeys.has(PREFIX + key) || value !== DEFAULTS[key])) return value;
     if(['minifyOnSave', 'mangle', 'sourceMap', 'execPath'].includes(key)) {
       const legacy = nova.config.get(PREFIX + key);
       if(legacy != null) return legacy;
@@ -62,15 +62,25 @@ class JsMinService {
     if(key === 'commentFilter') return this.setting('comments') === 'License' ? 'License' : 'All';
     return DEFAULTS[key];
   }
-  resolveSettingChoices(key, values) {
-    const saved = nova.workspace.config.get(PREFIX + key);
-    const effective = this.setting(key);
-    // Label the unset value with its effective choice, without persisting it.
-    // Nova saves explicit values only when the user selects another choice.
-    return values.map(value => [
-      (saved == null || saved === 'inherit') && value === effective ? 'inherit' : value,
-      value
-    ]);
+  projectChoice(key) {
+    const value = nova.workspace.config.get(PREFIX + key);
+    return value == null || value === 'inherit' ? DEFAULTS[key] : value;
+  }
+  readSavedProjectKeys() {
+    // Configuration.get includes manifest defaults. Read the persisted keys
+    // once so an unsaved radio default cannot mask an older global preference.
+    // All writes still go through Nova's configuration API, after a user edit.
+    if(!nova.workspace.path || nova.workspace.config.get(PROJECT_ONLY) === true) return new Set();
+    let file;
+    try {
+      const path = nova.path.join(nova.workspace.path, '.nova', 'Configuration.json');
+      if(!nova.fs.stat(path)) return new Set();
+      file = nova.fs.open(path, 'rt');
+      return new Set(Object.keys(JSON.parse(file.readlines().join(''))));
+    } catch(error) {
+      console.warn('Could not read saved JsMin project preferences: ' + error);
+      return new Set();
+    } finally { if(file) file.close(); }
   }
   notify(id, title, body) {
     if(this.disposed) return;
@@ -136,7 +146,7 @@ class JsMinService {
     return result.status === 0 && /uglify/i.test(version) ? {path, version} : null;
   }
   async resolveExecutables() {
-    const configured = this.setting('execPath');
+    const configured = this.projectChoice('execPath');
     const paths = [...new Set([configured, 'uglifyjs', '/opt/homebrew/bin/uglifyjs', '/usr/local/bin/uglifyjs'].filter(Boolean))];
     const results = (await Promise.all(paths.map(path => this.version(path)))).filter(Boolean);
     if(this.disposed) return [];
