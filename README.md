@@ -36,7 +36,7 @@ Both manual commands are also available in the editor menu.
 
 Open **Project → Project Settings → Languages & Extensions → JsMin**.
 
-Each project can have its own settings. **Automatic / inherited** uses your previous preference where available, otherwise the default described below. Choose an explicit value to customise that project.
+Each project can have its own settings. The settings show your previous preference where available, otherwise the default described below. Change a selection to customise that project; opening settings does not save project preferences.
 
 ### General
 
@@ -70,7 +70,7 @@ These options apply to automatic compilation and Compile Now. Beautify Now uses 
 
 ### UglifyJS installation
 
-**UglifyJS Executable** lists detected installations and their versions. Leave it on Automatic / legacy preference to use your previous executable selection or an automatically detected installation. Choose a listed executable or enter a custom path to use a specific installation for this project.
+**UglifyJS Executable** lists detected installations and their versions. The initial selection uses your previous executable preference or an automatically detected installation. Choose a listed executable or enter a custom path to use a specific installation for this project.
 
 JsMin checks Nova’s PATH, `/opt/homebrew/bin/uglifyjs`, and `/usr/local/bin/uglifyjs`. Paths containing spaces are supported.
 
@@ -92,7 +92,7 @@ For remote websites, keep a local project, compile locally, and use Nova Publish
 
 ## Upgrading to 1.0
 
-Settings are now per project. Your saved global preferences remain available through **Automatic / inherited**, while explicit project selections take precedence.
+Settings are now per project. Your saved global preferences supply the initial selections, while saved project selections take precedence.
 
 The previous compilation defaults are retained: run on save, compression, name mangling and source maps enabled; compact output, comments removed, and `.min.js` output. Function-name preservation, property mangling and wrapping are off by default.
 

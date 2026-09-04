@@ -204,6 +204,12 @@ async function main() {
   assert.equal(service.setting('minifyOnSave'),'No');
   assert.equal(service.setting('outputFormat'),'Compact');
   assert.equal(project.size,3,'Activation must not populate project settings');
+  assert.deepEqual(service.resolveSettingChoices('mangle',['Yes','No']),[['Yes','Yes'],['inherit','No']]);
+  project.set(prefix+'mangle','Yes');
+  assert.deepEqual(service.resolveSettingChoices('mangle',['Yes','No']),[['Yes','Yes'],['No','No']]);
+  project.set(prefix+'mangle','No');
+  assert.deepEqual(service.resolveSettingChoices('mangle',['Yes','No']),[['Yes','Yes'],['No','No']]);
+  assert.deepEqual(service.resolveSettingChoices('outputFormat',['Compact','Beautified']),[['inherit','Compact'],['Beautified','Beautified']]);
   const currentEditor = editor('/tmp/current.js');
   const menuEditor = editor('/tmp/editor-menu.js');
   nova.workspace.activeTextEditor = currentEditor;

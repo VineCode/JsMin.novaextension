@@ -45,32 +45,18 @@
                 {
                     "key": "VineCode.JsMin.minifyOnSave",
                     "title": "Run on Save",
-                    "description": "Process the saved local JavaScript file using these output settings. Manual commands still work when No. Default: Yes. Automatic uses the previous preference, or the stated default, without saving it to this project.",
+                    "description": "Process the saved local JavaScript file using these output settings. Manual commands still work when No. Default: Yes.",
                     "type": "enum",
-                    "values": [
-                        [
-                            "inherit",
-                            "Automatic / inherited"
-                        ],
-                        "Yes",
-                        "No"
-                    ],
-                    "default": "inherit"
+                    "default": "inherit",
+                    "resolve": "JsMin.resolve.minifyOnSave"
                 },
                 {
                     "key": "VineCode.JsMin.sourceMap",
                     "title": "Generate Source Map",
-                    "description": "Generate a .map file alongside the compiled output. Default: Yes. Automatic uses the previous preference, or the stated default, without saving it to this project.",
+                    "description": "Generate a .map file alongside the compiled output. Default: Yes.",
                     "type": "enum",
-                    "values": [
-                        [
-                            "inherit",
-                            "Automatic / inherited"
-                        ],
-                        "Yes",
-                        "No"
-                    ],
-                    "default": "inherit"
+                    "default": "inherit",
+                    "resolve": "JsMin.resolve.sourceMap"
                 }
             ]
         },
@@ -82,16 +68,9 @@
                     "key": "VineCode.JsMin.outputFormat",
                     "title": "Output Format",
                     "type": "enum",
-                    "values": [
-                        [
-                            "inherit",
-                            "Automatic / inherited"
-                        ],
-                        "Compact",
-                        "Beautified"
-                    ],
-                    "description": "Compact removes formatting; Beautified adds line breaks and indentation. Compression is on by default; mangling is separate under Advanced. Default: Compact. Automatic uses the previous preference, or the stated default, without saving it to this project.",
-                    "default": "inherit"
+                    "description": "Compact removes formatting; Beautified adds line breaks and indentation. Compression is on by default; mangling is separate under Advanced. Default: Compact.",
+                    "default": "inherit",
+                    "resolve": "JsMin.resolve.outputFormat"
                 },
                 {
                     "key": "VineCode.JsMin.outputSuffix",
@@ -105,16 +84,9 @@
                     "key": "VineCode.JsMin.keepComments",
                     "title": "Keep Comments",
                     "type": "enum",
-                    "values": [
-                        [
-                            "inherit",
-                            "Automatic / inherited"
-                        ],
-                        "Yes",
-                        "No"
-                    ],
-                    "description": "Preserve comments in compiled output. Compression may discard comments attached to removed code. Default: No. Automatic uses the previous preference, or the stated default, without saving it to this project.",
-                    "default": "inherit"
+                    "description": "Preserve comments in compiled output. Compression may discard comments attached to removed code. Default: No.",
+                    "default": "inherit",
+                    "resolve": "JsMin.resolve.keepComments"
                 }
             ]
         },
@@ -136,17 +108,10 @@
                 {
                     "key": "VineCode.JsMin.mangle",
                     "title": "Mangle Names",
-                    "description": "Shorten eligible variable and parameter names. Separate from compression and output formatting. Default: Yes; saved preferences are preserved. Automatic uses the previous preference, or the stated default, without saving it to this project.",
+                    "description": "Shorten eligible variable and parameter names. Separate from compression and output formatting. Default: Yes; saved preferences are preserved.",
                     "type": "enum",
-                    "values": [
-                        [
-                            "inherit",
-                            "Automatic / inherited"
-                        ],
-                        "Yes",
-                        "No"
-                    ],
-                    "default": "inherit"
+                    "default": "inherit",
+                    "resolve": "JsMin.resolve.mangle"
                 },
                 {
                     "key": "VineCode.JsMin.keepFunctionNames",
@@ -175,16 +140,9 @@
                     "key": "VineCode.JsMin.commentFilter",
                     "title": "Comments to Keep",
                     "type": "enum",
-                    "values": [
-                        [
-                            "inherit",
-                            "Automatic / inherited"
-                        ],
-                        "All",
-                        "License"
-                    ],
-                    "description": "Only used when Keep Comments is Yes. License keeps @license, @preserve and comments starting with !. Default: All. Automatic uses the previous preference, or the stated default, without saving it to this project.",
-                    "default": "inherit"
+                    "description": "Only used when Keep Comments is Yes. License keeps @license, @preserve and comments starting with !. Default: All.",
+                    "default": "inherit",
+                    "resolve": "JsMin.resolve.commentFilter"
                 },
                 {
                     "key": "VineCode.JsMin.wrap",

@@ -22,6 +22,16 @@ class JsMinService {
     if(key === 'commentFilter') return this.setting('comments') === 'License' ? 'License' : 'All';
     return value;
   }
+  resolveSettingChoices(key, values) {
+    const saved = nova.workspace.config.get(PREFIX + key);
+    const effective = this.setting(key);
+    // Label the unset value with its effective choice, without persisting it.
+    // Nova saves explicit values only when the user selects another choice.
+    return values.map(value => [
+      (saved == null || saved === 'inherit') && value === effective ? 'inherit' : value,
+      value
+    ]);
+  }
   notify(id, title, body) {
     if(this.disposed) return;
     const request = new NotificationRequest(id);
@@ -94,7 +104,13 @@ class JsMinService {
     this.detectedExecutable = results.length ? results[0].path : null;
     const choices = results.map(item => [item.path, item.version + ' — ' + (item.path === 'uglifyjs' ? 'Nova PATH' : item.path)]);
     if(configured && !results.some(item => item.path === configured)) choices.push([configured, configured + ' — not found or not responding']);
-    choices.unshift(['inherit', 'Automatic / legacy preference — ' + (this.detectedExecutable || 'not found')]);
+    const saved = nova.workspace.config.get(PREFIX + 'execPath');
+    if(saved == null || saved === 'inherit') {
+      const effective = configured && configured !== 'uglifyjs' ? configured : this.detectedExecutable || configured;
+      const selected = choices.find(choice => choice[0] === effective);
+      if(selected) selected[0] = 'inherit';
+      else choices.unshift(['inherit', 'UglifyJS not found — enter a custom path']);
+    }
     return choices;
   }
   async executable() {
