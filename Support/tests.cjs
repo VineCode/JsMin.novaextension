@@ -8,6 +8,7 @@ const {pathToFileURL} = require('node:url');
 const prefix = 'VineCode.JsMin.';
 let project, legacy, notifications, launches;
 global.Issue = class {};
+global.TextEditor = {isTextEditor: value => !!(value && value.document)};
 global.IssueSeverity = {Error: 'error'};
 global.IssueCollection = class {
   constructor() { this.entries = new Map(); }
@@ -203,6 +204,31 @@ async function main() {
   assert.equal(service.setting('minifyOnSave'),'No');
   assert.equal(service.setting('outputFormat'),'Compact');
   assert.equal(project.size,3,'Activation must not populate project settings');
+  const currentEditor = editor('/tmp/current.js');
+  const menuEditor = editor('/tmp/editor-menu.js');
+  nova.workspace.activeTextEditor = currentEditor;
+  const invoked = [];
+  service.compile = async (target, manual, beautify) => { invoked.push({target, manual, beautify}); };
+  for(const name of ['minifyJsFileOnCommand','beautifyJsFileOnCommand']) {
+    const beautify = name === 'beautifyJsFileOnCommand';
+    for(const [context, expected] of [[nova.workspace,currentEditor],[menuEditor,menuEditor],[undefined,currentEditor],[{activeTextEditor:null},null]]) {
+      await service[name](context);
+      assert.deepEqual(invoked.pop(),{target:expected,manual:true,beautify});
+    }
+  }
+  // Exercise the actual pipeline with Nova's Extensions-menu argument and auto off.
+  reset({}, {minifyOnSave:'No', execPath:wrapper, sourceMap:'No'});
+  service = new Service();
+  nova.workspace.activeTextEditor = current;
+  await service.minifyJsFileOnCommand(nova.workspace);
+  assert.ok(launches.some(args => args.includes('--compress')));
+  await service.beautifyJsFileOnCommand(nova.workspace);
+  assert.ok(launches.some(args => args.includes('--beautify')));
+  const count = launches.length;
+  nova.workspace.activeTextEditor = null;
+  await service.minifyJsFileOnCommand(nova.workspace);
+  await service.beautifyJsFileOnCommand(nova.workspace);
+  assert.equal(launches.length,count,'No editor must safely do nothing');
   console.log('All JsMin tests passed.');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => fs.rmSync(temp,{recursive:true,force:true}));

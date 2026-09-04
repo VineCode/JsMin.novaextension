@@ -114,8 +114,13 @@ class JsMinService {
     if(this.setting('minifyOnSave') === 'No' || this.saving.has(editor)) return;
     return this.compile(editor, false, false);
   }
-  minifyJsFileOnCommand(editor) { return this.compile(editor || nova.workspace.activeTextEditor, true, false); }
-  beautifyJsFileOnCommand(editor) { return this.compile(editor || nova.workspace.activeTextEditor, true, true); }
+  commandEditor(context) {
+    // Editor-menu commands receive a TextEditor; other contexts receive a Workspace.
+    if(context && TextEditor.isTextEditor(context)) return context;
+    return context ? context.activeTextEditor : nova.workspace.activeTextEditor;
+  }
+  minifyJsFileOnCommand(context) { return this.compile(this.commandEditor(context), true, false); }
+  beautifyJsFileOnCommand(context) { return this.compile(this.commandEditor(context), true, true); }
   buildArgs(beautify) {
     const indent = ['2', '4', '8'].includes(this.setting('indent')) ? this.setting('indent') : '4';
     // Beautify Now is formatting only: never wrap, compress or rename source code.
