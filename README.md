@@ -70,7 +70,7 @@ These options apply to automatic compilation and Compile Now. Beautify Now uses 
 
 ### UglifyJS installation
 
-**UglifyJS Executable** lists detected installations and their versions. The initial selection uses your previous executable preference or an automatically detected installation. Choose a listed executable or enter a custom path to use a specific installation for this project.
+**UglifyJS Executable** lists detected installations and their versions. The selection shows your saved project choice or an automatically detected installation, not your old global preference. Until you change a project setting, compilation still honours an existing global executable preference. Choose a listed executable or enter a custom path to use a specific installation for this project.
 
 JsMin checks Nova’s PATH, `/opt/homebrew/bin/uglifyjs`, and `/usr/local/bin/uglifyjs`. Paths containing spaces are supported.
 
